@@ -1,7 +1,7 @@
 
 # coding: utf-8
 
-# In[34]:
+# In[1]:
 
 
 from scipy import stats
@@ -73,7 +73,7 @@ plt.style.use('seaborn-darkgrid')
 # 
 # Using Python's scipy.stats package we can define a random variable $X$ by specifying its distribution, then get an instance $x$ by sampling random variates (`rvs`) from it. Each time we sample we will get a different, random, result, because the sampling is a stochastic process. How likely we are to get a particular value for $x$ is determined by the probability distribution.
 
-# In[4]:
+# In[2]:
 
 
 μ = 0
@@ -85,7 +85,7 @@ x
 
 # The concept of inference is that if we generate random variates enough times, we can build up a picture of how likely each result is, and infer the true probability distribution of $X$
 
-# In[22]:
+# In[3]:
 
 
 x = X.rvs(1000000)
@@ -110,7 +110,7 @@ plt.show()
 # 
 # Let's explore the pdfs of Normal distributions with different parameters visually
 
-# In[35]:
+# In[4]:
 
 
 μ_params = [-1,0,1]
@@ -163,7 +163,7 @@ plt.show()
 # 
 # Lets get the shape of this distribution by using the pmf for a few fixed values of N and $\theta$
 
-# In[48]:
+# In[5]:
 
 
 N_params = [1,2,4]
@@ -201,7 +201,7 @@ plt.show()
 # 
 # Again lets explore this graphically.
 
-# In[124]:
+# In[6]:
 
 
 params = [0.5,1,2,5,10]
@@ -219,8 +219,6 @@ for i in range(5):
         ax[i,j].plot(x,y, lw=3, color='C0')
         ax[i,0].set_ylabel('α = '+str(params[i]), fontsize=15, rotation=1, labelpad=25)
         ax[4,j].set_xlabel('β = '+str(params[j]), fontsize=15)
-        ax[i,j].plot([], label='inf: ' + str(params[i]+params[j]), alpha = 0)
-        ax[i,j].legend(fontsize=15, loc=1)
         
 ax[0,0].set_yticks([])
 ax[0,0].set_xticks([0,0.5,1])
@@ -240,7 +238,7 @@ plt.show()
 # 
 # Let's set the 'true' theta to 0.35, i.e. the coin is tails biased - we wouldn't know that in real life obviously
 
-# In[125]:
+# In[7]:
 
 
 true_θ = 0.35
