@@ -8,6 +8,7 @@ from scipy import stats
 import numpy as np
 import matplotlib.pyplot as plt
 plt.style.use('seaborn-darkgrid')
+import arviz as az
 
 
 # # Bayesian Analysis with Python
@@ -136,7 +137,7 @@ ax[1,0].set_yticks([])
 plt.show()
 
 
-# ## Bayes theorem and statistical inference
+# ## Bayes theorem and statistical inference (to fill)
 
 # ## Single parameter inference (the coin flip problem)
 # To summarise where we are
@@ -271,6 +272,86 @@ plt.tight_layout()
 plt.show()
 
 
+# A few observations on this:
+# the first chart, with 0 trials, represents out priors: uniform (a=1,b=1) in blue, tails waited (1,5) in green, and gaussian-like centered on 0.5 (10,10) in orange.
+# 
+# the black vertical line is the mean of the 'true' probability, 0.35, which in reality we wouldn't know
+# 
+# The posterior results are represented by distributions which give probabilities about where we think the true mean might be. The most probably value is the peak (mode) of the distirbution.
+# 
+# the spread of each posterior represents how uncertain we are. A very 'tight' distribution means we are getting quite certain. Notice that the larger the number of trials, the tighter the distirbutions, the more we 'hone in' on the true value, which makes intuitive sense.
+# 
+# Priors have an effective sample size. The prior with a=10, b=10 (ESS=20) has a bigger effective sample size than a=1,b=1 (ESS=2). The consequences of this can be seen when we have a fairly small number of trials. When you have three trials (sample size of data is 3) this has a big impact on the posterior in the case of the (1,1) prior, but the (10,10) prior barely moves. Eventually though, if you collected enough data the prior, the weight of the data is going to overwhelm the prior, as we can see in the 150 trial result: all 3 posteriors are nearly the same (though the 10,10 prior is still distinguishable as separate)
+# 
+# the more 'extreme' values we get from our trials, the more that tends to narrow our spread. Compare the following 2 graphs, you can see the posterior you get when you get ALL heads from your trial results in a narrower spread than if you get half and half. The all heads result has more 'information' than the half and half
+
+# In[8]:
+
+
+N = 10
+y1 = 5
+y2 = 10
+
+x = np.linspace(0,1,100)
+prior = stats.beta(a=1,b=1).pdf(x)
+post1 = stats.beta(a=1+y1,b=1+N-y1).pdf(x)
+post2 = stats.beta(a=1+y2,b=1+N-y2).pdf(x)
+plt.fill_between(x, prior, alpha = 0.5, label='Prior')
+plt.fill_between(x, post1, alpha = 0.5, label='Half heads')
+plt.fill_between(x, post2, alpha = 0.5, label='All heads')
+plt.legend(loc=2)
+plt.yticks([])
+plt.xticks([0,0.5,1])
+plt.show()
+
+
+# Something not obvious from this presentation is the you get the same result if you create a posterior from data with 150 trials, as if you ran 50 trials, updated your prior, and then ran another 100 trials, plugging in the posterior from the first run as the prior of the second one. The posterior you come out with at the end of the day is the same in both cases (provided the data results are ultimately the same obviously).
+# 
+# This is useful because this iterative updating is something that happpens in real life all the time.
+
 # ## Priors: Choosing them and why you should like them
 
 # ## Communicating a Bayesian analysis
+# ### Model notiation and visualisation
+# You can give the distributions we use to represent the data and prior. You can also represent this visually as a Kruschke diagram, or something similar with the package (can't recall what this is, plug it in when you can)
+# 
+# ### Summarising the posterior
+# The posterior is the outcome, it's generally what we want to present. It contains all the info in aggregate from the model and the data, so presenting this is in effect a summary of the whole shebang.
+# 
+# Commonly you'll report on one or some of the mean, median, mode of the posterior, with some measure of spread (e.g. standard deviation for normals).
+# 
+# ### Highest Posterior Density (HPD)
+# This is another common spread measure, a specific case of a __credible interval__. It is the shortest possible interval of the x axis of a distribution that contains x% of the probability density (you would call this is x% HPD. A common value is 95%, and arviz uses 94% by default.) 
+# 
+# A 95% HPD covering the interval $\theta=[2,5]$ allows you to make the statement 'we think the parameter $\theta$ is between 2 and 5, with a probability of 0.95'.
+# 
+# Note this is similar to, but subtly different from, the frequentist framework concept of confidence interval. Since in that framework, $\theta$ is a fixed value, with a CI you are effectively saying 'there is a 95% chance $\theta$ is in this interval'. With Bayes, we don't attached a fixed value to theta, or think there is a 'true' $\theta$. Instead we think in terms of a $\theta$ distribution, so we can make statements in terms of probability of a instance of a parameter being within a range.
+
+# In[9]:
+
+
+np.random.seed(1)
+az.plot_posterior({'θ':stats.beta.rvs(5,11,size=1000)})
+plt.show()
+
+
+# ### Model validation: Posterior predictive checks
+# You can use posterior to generate predictions. Technically you use the __posterior predictive__ distribution. Mathematically the posterior predictive is defined as:
+# 
+# $$p(\tilde{y} \mid y) = \int p(\tilde{y} \mid \theta)p(\theta \mid y) d \theta$$
+# 
+# Computationally we approximate the integral as a 2 step process:
+# 1. sample a value of $\theta$ from the posterior $p(\theta\mid y)$
+# 2. Feed the value of $\theta$ to the likelihood, thus obtaining a data point $\tilde{y}$
+# 
+# The main use of these generated predictions (apart from actually making predictions) is to critisize our posterior, by comparing the generated data points with the actual data and comparing how similar they are. These are __posterior predictive checks__. If they are significant differences you may have made a modelling error, for example assigning a bad distribution to the data. Or if there are no 'errors', you can use the PPCs to understand the limits of your model: it models the mean well, say, but is thrown out by extreme values. This might be OK, or you might want to go back and amend your model.
+
+# ## Summary - the Bayesian workflow
+# 1. We assume there is a 'true' distribution for some phenomenon/variable that is unknown (and unknowable)
+# 2. We obtain a sample from that distribution, by experiment, survey, observation, or simulation.
+# 3. We build a probablistic model of the variable, with two components that we try to estimate: 
+#     * the likelihood - a model for the variable, specifying the type of distribution, but leaving the parameters of that distribution unknown
+#     * the prior - assigned distributions for each of the parameters contained in the likelihood.
+# 4. We combine the prior and likelihood using Bayes' theorem, and get the posterior.
+# 5. We generate from the posterior the posterior predictive distribution, and from the PPC we draw random samples, and compare the sample to our observed data, to see whether the model is good enough for whatever purpose we're using it for.
+# 6. If not we use the insights from step 5 to iterate and improve the model.
