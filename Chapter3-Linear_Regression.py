@@ -13,7 +13,7 @@
 # * Interactions
 # * Variable variance
 
-# In[10]:
+# In[1]:
 
 
 import numpy as np
@@ -62,7 +62,7 @@ plt.style.use('seaborn-darkgrid')
 # 
 # Let's build a model for this with some synthetic data
 
-# In[11]:
+# In[2]:
 
 
 #Data generation
@@ -87,7 +87,7 @@ plt.tight_layout()
 plt.show()
 
 
-# In[7]:
+# In[3]:
 
 
 with pm.Model() as model_g:
@@ -103,7 +103,7 @@ with pm.Model() as model_g:
 
 # Note the new object: `Deterministic`. With this we're telling pyMC3 that mu is defined using a formula, not a probablity distribution.
 
-# In[12]:
+# In[4]:
 
 
 az.plot_trace(trace_g, var_names=['α','β','ϵ'])
@@ -118,7 +118,7 @@ plt.show()
 # 
 # Taking this a step further, you can fully standardise the data. This makes things easier for the algorithms, and also means you can use the same weakly informative priors without having to think about the scale of the data.
 
-# In[15]:
+# In[5]:
 
 
 az.plot_pair(trace_g, var_names=['α','β'], plot_kwargs={'alpha':0.1})
@@ -130,7 +130,7 @@ plt.show()
 # 
 # Alternatively you can plot the HPD as a band. (2nd plot)
 
-# In[27]:
+# In[6]:
 
 
 plt.plot(x,y,'C0.')
@@ -153,7 +153,7 @@ plt.yticks(fontsize=15)
 plt.show()
 
 
-# In[38]:
+# In[7]:
 
 
 plt.plot(x, alpha_m + beta_m * x, c = 'k',
@@ -169,7 +169,7 @@ plt.show()
 
 # Another option is to plot the HPD of the posterior predictive.
 
-# In[51]:
+# In[8]:
 
 
 ppc = pm.sample_posterior_predictive(trace_g, samples=2000, model=model_g)
@@ -202,7 +202,7 @@ plt.show()
 # 
 # Using arviz we can get the r2 value and it's SD
 
-# In[52]:
+# In[9]:
 
 
 az.r2_score(y, ppc['y_pred'])
