@@ -21,6 +21,7 @@ import pymc3 as pm
 import arviz as az
 import matplotlib.pyplot as plt
 plt.style.use('seaborn-darkgrid')
+from scipy import stats
 
 
 # ## Simple Linear Regression
@@ -198,7 +199,7 @@ plt.show()
 # 
 # r is between -1 and 1. 0 is no correlation, -1 and 1 are perfect correlations in either direction.
 # 
-# Coefficient of determination (for a linear regression) is $r^2$. 
+# Coefficient of determination (for a _linear_ regression) is $r^2$. 
 # 
 # Using arviz we can get the r2 value and it's SD
 
@@ -206,6 +207,54 @@ plt.show()
 
 
 az.r2_score(y, ppc['y_pred'])
+
+
+# ### Pearson with multivariate Gaussian
+# Another route the Pearson is by estimating the covariance matrix ($\Sigma$) of a multi-variate Gaussian D (which is a generalisation of the Gaussian).
+# 
+# For a bivariate gaussian we need 2 means, but instead of 2 SDs we need a 2x2 matrix, the covariance matrix.
+# 
+# $$\Sigma = \begin{bmatrix}
+#     \sigma_{x1}^2 & \rho\sigma_{x1}\sigma_{x2} \\
+#     \rho\sigma_{x1}\sigma_{x2} & \sigma_{x2}^2 
+#     \end{bmatrix}$$
+#     
+# where $\rho$ is the pearson CC between variables.
+
+# In[10]:
+
+
+sigma_x1 = 1
+sigmas_x2 = [1,2]
+rhos = [-0.9, -0.5, 0, 0.5, 0.9]
+
+k, l = np.mgrid[-5:5:0.1, -5:5:0.1]
+pos = np.empty(k.shape+(2,))
+pos[:,:,0] = k
+pos[:,:,1] = l
+
+f, ax = plt.subplots(len(sigmas_x2), len(rhos),
+                    sharex=True, sharey=True, figsize=(12,6),
+                    constrained_layout=True)
+plt.xticks(fontsize=15)
+plt.yticks(fontsize=15)
+for i in range(2):
+    for j in range(5):
+        sigma_x2 = sigmas_x2[i]
+        rho = rhos[j]
+        cov = [[sigma_x1**2, sigma_x1*sigma_x2*rho], 
+               [sigma_x1*sigma_x2*rho, sigma_x2**2]]
+        rv = stats.multivariate_normal([0,0],cov)
+        ax[i,j].contour(k,l, rv.pdf(pos), cmap=plt.cm.viridis)
+        ax[i,j].set_xlim(-8,8)
+        ax[i,j].set_ylim(-8,8)
+        ax[i,j].set_yticks([-5,0,5])
+        ax[i,j].plot(0,0,
+                    label=f'$\\sigma_{{x2}}$ = {sigma_x2:3.2f}\n$\\rho$ = {rho:3.2f}', alpha=0)
+        ax[i, j].legend(fontsize=15)
+f.text(0.5, -0.05, f'$x_1$', ha='center', fontsize=18)
+f.text(-0.05, 0.5, f'$x_2$', va='center', fontsize=18, rotation=0)
+plt.show()
 
 
 # ## Robust LR
