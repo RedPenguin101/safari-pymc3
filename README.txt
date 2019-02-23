@@ -12,3 +12,7 @@ Doing Bayesian Data Analysis by John Kruschke
 
 Chapter 3
 Machine learning: A probabilistic perspective by Kevin Murphy
+
+CONCEPTS TO LEARN MORE ABOUT
+Covariance/covariance matrix of multivariate Gaussian 
+Wishart Distribution
